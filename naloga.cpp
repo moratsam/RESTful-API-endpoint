@@ -1,11 +1,18 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
+#include <unordered_set>
+
 
 //Use system() and bash curl to execute 4 http(s) HEAD requests and save the received headers which are then printed to StdOut. First input an integer [1,4] to define number of threads which will execute the requests in parallel.
 
+
 using namespace std;
 
+bool dbg = 0;
+unordered_set<pthread_t> thread_ids; //unique thread ids
+unordered_set<string> curl_dump;
 //used to later verify if program is in main thread
 const pthread_t main_thread_id = pthread_self();
 
@@ -13,6 +20,15 @@ const pthread_t main_thread_id = pthread_self();
 #define errorexit(errcode, errstr) \
 			fprintf(stderr, "%s: &d\n", errstr, errcode); \
 			exit(1);
+
+//get substring of 's' between start_ and stop_ markers
+string get_str_between_two_str(const string &s, const string &start_marker, const string &stop_marker){
+	unsigned first_marker_pos = s.find(start_marker);
+	unsigned end_pos_of_first_marker = first_marker_pos + start_marker.length();
+	unsigned last_marker_pos = s.find(stop_marker);
+
+	return s.substr(end_pos_of_first_marker, last_marker_pos - end_pos_of_first_marker);
+}
 
 //execute command 'c', divert its output from StdOut to 'data'. If this is being run by spawned thread, return via 'pthread_exit()'.
 void *curl(void *c) {
@@ -30,6 +46,14 @@ void *curl(void *c) {
 				data.append(buffer);
 		pclose(stream);
 	}
+	if(dbg){
+		thread_ids.insert(pthread_self());
+		curl_dump.insert(data);
+	}
+	string start_marker = "<h1 class=\"et_pb_module_header\">";
+	string stop_marker = "</h1>";
+	data.append(start_marker); //in case 'data' is empty
+	data = get_str_between_two_str(data, start_marker, stop_marker);
 
 	char *ret_data = (char*)malloc(data.size()+1); //make thread allocate memory for the data
 	int i;
@@ -42,17 +66,18 @@ void *curl(void *c) {
 		pthread_exit((void*)ret_data); //exit the thread
 }
 
-int main (){
+int main (int argc, char** argv){
+	if(argc != 2)
+		return 1;
 	int errcode;
-	int nthreads; //max 4
-	cin >> nthreads;
+	int nthreads = atoi(argv[1]); //max 4
 	if (nthreads < 0 || nthreads > 4)
 		return 0;
 	pthread_t t[nthreads];
-	string commands[4] = {"curl -sI https://www.result.si/projekti/",
-	 							"curl -sI https://www.result.si/o-nas/",
-								"curl -sI https://www.result.si/kariera/",
-								"curl -sI https://www.result.si/blog/"};
+	string commands[4] = {"curl -s https://www.result.si/projekti/",
+	 							"curl -s https://www.result.si/o-nas/",
+								"curl -s https://www.result.si/kariera/",
+								"curl -s https://www.result.si/blog/"};
 	char *headers[4]; //used to store return values from curl calls.
 
 	for(int i=0; i<nthreads; i++) //create 'nthreads' parallel threads to run curl().
@@ -67,11 +92,23 @@ int main (){
 			errorexit(errcode, "pthread_join");
 		}
 
+	if(dbg){ //print thread ids and curl retrievals
+		thread_ids.insert(pthread_self());
+		cout << thread_ids.size() << endl;
+		for (const auto& el: curl_dump)
+			cout << el;
+		return 0;
+	}
 
-	//print the headers to StdOut
+	//print results
+	int worked = 4;
 	for(int i=0; i<4; i++){
-		cout << headers[i] << endl;
+		if(strlen(headers[i]) == 0)
+			worked--;
+		else
+			cout << headers[i] << endl;
 		free(headers[i]);
 	}
+	printf("\nuspelo: %d\tneuspelo: %d\n", worked, 4-worked);
 	return 0;
 }
