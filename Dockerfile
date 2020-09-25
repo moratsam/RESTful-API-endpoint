@@ -2,7 +2,7 @@
 FROM archlinux
 RUN pacman --noconfirm -Syy
 RUN pacman --noconfirm -Su
-RUN pacman --noconfirm -S gcc git 
+RUN pacman --noconfirm -S gcc git vim 
 
 #grab the repo from github
 RUN git clone https://github.com/moratsam/RESTful-API-endpoint.git 

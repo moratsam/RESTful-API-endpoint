@@ -12,9 +12,6 @@ $[torsocks] docker pull moratsam/arch_api
 
 $docker run -it moratsam/arch_api bash
 
-$cd /RESTful-API-endpoint/
-
-
 #set 'dbg' bool to 1 (line 12)
 
 $vim naloga.cpp
