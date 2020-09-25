@@ -5,14 +5,12 @@
 #include <unordered_set>
 
 
-//Use system() and bash curl to execute 4 http(s) HEAD requests and save the received headers which are then printed to StdOut. First input an integer [1,4] to define number of threads which will execute the requests in parallel.
-
+//Use system() and bash curl to execute 4 http(s) HEAD requests and save the received headers which are then printed to StdOut. First input an integer [1,4] to define number of threads which will execute the requests in parallel. Set dbg to 1 for debug and run naloga_tester.sh
 
 using namespace std;
 
 bool dbg = 0;
 unordered_set<pthread_t> thread_ids; //unique thread ids
-unordered_set<string> curl_dump;
 //used to later verify if program is in main thread
 const pthread_t main_thread_id = pthread_self();
 
@@ -46,10 +44,8 @@ void *curl(void *c) {
 				data.append(buffer);
 		pclose(stream);
 	}
-	if(dbg){
+	if(dbg)
 		thread_ids.insert(pthread_self());
-		curl_dump.insert(data);
-	}
 	string start_marker = "<h1 class=\"et_pb_module_header\">";
 	string stop_marker = "</h1>";
 	data.append(start_marker); //in case 'data' is empty
@@ -95,8 +91,6 @@ int main (int argc, char** argv){
 	if(dbg){ //print thread ids and curl retrievals
 		thread_ids.insert(pthread_self());
 		cout << thread_ids.size() << endl;
-		for (const auto& el: curl_dump)
-			cout << el;
 		return 0;
 	}
 

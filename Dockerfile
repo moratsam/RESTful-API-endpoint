@@ -6,11 +6,10 @@ RUN pacman --noconfirm -S gcc git
 
 #grab the repo from github
 RUN git clone https://github.com/moratsam/RESTful-API-endpoint.git 
-RUN mv RESTful-API-endpoint naloga
 
-
-ENV NAME VAR1 #set input var [0-4]
-WORKDIR /naloga/
+#set input var [0-4]
+ENV NAME VAR1
+WORKDIR /RESTful-API-endpoint/
 RUN g++ -o naloga.out -lpthread naloga.cpp #compile
-CMD ["/bin/bash", "/naloga/run_naloga.sh"] #run
+CMD ["/bin/bash", "/RESTful-API-endpoint/run_naloga.sh"] #run
 
