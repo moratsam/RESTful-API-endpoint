@@ -1,4 +1,4 @@
 # RESTful-API-endpoint
-$docker build -t arch .
-$docker run -it -e VAR1=[0-4] arch
+$[torsocks] docker pull moratsam/arch_api
 
+$docker run -it -e VAR1=[0-4] moratsam/arch_api
