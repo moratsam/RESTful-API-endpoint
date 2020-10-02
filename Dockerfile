@@ -1,8 +1,7 @@
 #prepare the base arch
 FROM archlinux
-RUN pacman --noconfirm -Syy
-RUN pacman --noconfirm -Su
-RUN pacman --noconfirm -S git vim
+RUN pacman --noconfirm -Syy && pacman --noconfirm -Su
+RUN pacman --noconfirm -S git vim gcc gtest
 
 #grab the repo from github
 RUN git clone https://github.com/moratsam/RESTful-API-endpoint.git 
