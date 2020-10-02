@@ -10,6 +10,6 @@ RUN git clone https://github.com/moratsam/RESTful-API-endpoint.git
 #set input var [1-4]
 ENV NAME VAR1
 WORKDIR /RESTful-API-endpoint/
-RUN g++ -o naloga.out -lpthread -lcurl naloga.cpp #compile
+RUN g++ -o naloga.out -lpthread -lcurl -lgtest naloga.cpp #compile
 CMD ["/bin/bash", "/RESTful-API-endpoint/run_naloga.sh"] #run
 
