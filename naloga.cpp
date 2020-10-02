@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <unordered_set>
+#include <curl/curl.h>
 
 
 //Use system() and bash curl to execute 4 http(s) HEAD requests and save the received headers which are then printed to StdOut. First input an integer [1,4] to define number of threads which will execute the requests in parallel. Set dbg to 1 for debug and run naloga_tester.sh
@@ -19,6 +20,12 @@ const pthread_t main_thread_id = pthread_self();
 			fprintf(stderr, "%s: &d\n", errstr, errcode); \
 			exit(1);
 
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp){
+	((string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
+}
+
+
 //get substring of 's' between start_ and stop_ markers
 string get_str_between_two_str(const string &s, const string &start_marker, const string &stop_marker){
 	unsigned first_marker_pos = s.find(start_marker);
@@ -32,18 +39,19 @@ string get_str_between_two_str(const string &s, const string &start_marker, cons
 void *curl(void *c) {
 	string cmd = *((string *)c); //command to execute
 	string data;
-	FILE *stream;
-	const int max_buffer = 256;
-	char buffer[max_buffer];
-	cmd.append(" 2>&1");
 
-	stream = popen(cmd.c_str(), "r"); //execute command
-	if (stream) {
-		while (!feof(stream)) //divert command output from StdOut to 'data'
-			if (fgets(buffer, max_buffer, stream) != NULL)
-				data.append(buffer);
-		pclose(stream);
+	CURL *curl;
+	CURLcode res;
+
+	curl = curl_easy_init();
+	if(curl){
+		curl_easy_setopt(curl, CURLOPT_URL, cmd.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+		res = curl_easy_perform(curl);
+		curl_easy_cleanup(curl);
 	}
+
 	if(dbg)
 		thread_ids.insert(pthread_self());
 	string start_marker = "<h1 class=\"et_pb_module_header\">";
@@ -70,10 +78,10 @@ int main (int argc, char** argv){
 	if (nthreads < 0 || nthreads > 4)
 		return 0;
 	pthread_t t[nthreads];
-	string commands[4] = {"curl -s https://www.result.si/projekti/",
-	 							"curl -s https://www.result.si/o-nas/",
-								"curl -s https://www.result.si/kariera/",
-								"curl -s https://www.result.si/blog/"};
+	string commands[4] = {"https://www.result.si/projekti/",
+	 							"https://www.result.si/o-nas/",
+								"https://www.result.si/kariera/",
+								"https://www.result.si/blog/"};
 	char *headers[4]; //used to store return values from curl calls.
 
 	for(int i=0; i<nthreads; i++) //create 'nthreads' parallel threads to run curl().
