@@ -2,10 +2,12 @@
 FROM archlinux
 RUN pacman --noconfirm -Syy
 RUN pacman --noconfirm -Su
-RUN pacman --noconfirm -S gcc git vim gtest
+RUN pacman --noconfirm -S git vim
 
 #grab the repo from github
 RUN git clone https://github.com/moratsam/RESTful-API-endpoint.git 
+
+RUN pacman --noconfirm -S gcc gtest
 
 #set input var [1-4]
 ENV NAME VAR1
