@@ -4,6 +4,7 @@
 #include <cstring>
 #include <unordered_set>
 #include <curl/curl.h>
+#include <gtest/gtest.h>
 
 
 //Use system() and bash curl to execute 4 http(s) HEAD requests and save the received headers which are then printed to StdOut. First input an integer [1,4] to define number of threads which will execute the requests in parallel. Set dbg to 1 for debug and run naloga_tester.sh
@@ -70,6 +71,24 @@ void *curl(void *c) {
 		pthread_exit((void*)ret_data); //exit the thread
 }
 
+//------TESTS------
+//get_str_between_two_str
+TEST(GetStrBetweenTwoStr, Base){
+	EXPECT_EQ(get_str_between_two_str("startXstop", "start", "stop"), "X");
+}
+TEST(GetStrBetweenTwoStr, FirstOccurence){
+	EXPECT_EQ(get_str_between_two_str("startXstopstop", "start", "stop"), "X");
+}
+
+
+
+
+
+
+
+
+
+//------MAIN------
 int main (int argc, char** argv){
 	if(argc != 2)
 		return 1;
@@ -95,6 +114,9 @@ int main (int argc, char** argv){
 		if (errcode = pthread_join(t[i], (void**)&headers[i])){
 			errorexit(errcode, "pthread_join");
 		}
+
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 
 	if(dbg){ //print thread ids and curl retrievals
 		thread_ids.insert(pthread_self());
